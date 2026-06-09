@@ -47,9 +47,22 @@ body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:linear-gradient(1
 <body>
 <div id="app"></div>
 <script>
-var params = new URLSearchParams(window.location.search);
-var studentName = (params.get('n') || '').trim();
-var schoolsParam = params.get('s') || '';
+function getParam(name) {
+  var q = window.location.search.replace(/^\?/, '');
+  var parts = q.split('&');
+  for (var i = 0; i < parts.length; i++) {
+    var eq = parts[i].indexOf('=');
+    if (eq < 0) continue;
+    try {
+      var k = decodeURIComponent(parts[i].substring(0, eq));
+      var v = decodeURIComponent(parts[i].substring(eq + 1));
+      if (k === name) return v;
+    } catch(e) {}
+  }
+  return '';
+}
+var studentName = getParam('n').trim();
+var schoolsParam = getParam('s');
 var schools = schoolsParam
   ? schoolsParam.split('|').map(function(s){ return s.trim(); }).filter(Boolean)
   : [];

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BTS — ترتيب الأولويات</title>
+<title>BTS — اختيار المراكز</title>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,286 +11,215 @@ body {
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
   background: linear-gradient(135deg, #1a4731 0%, #276749 100%);
   min-height: 100vh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  display: flex; align-items: flex-start; justify-content: center;
   padding: 24px 16px;
 }
 .card {
-  background: white;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 580px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-  overflow: hidden;
+  background: white; border-radius: 20px;
+  width: 100%; max-width: 600px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25); overflow: hidden;
 }
+
+/* ── Header ── */
 .header {
   background: linear-gradient(135deg, #1a4731, #276749);
-  color: white;
-  padding: 28px 24px;
-  text-align: center;
+  color: white; padding: 24px; text-align: center;
 }
-.header h1 { font-size: 22px; font-weight: 700; }
+.header h1 { font-size: 24px; font-weight: 700; }
 .header .student-name {
-  font-size: 18px;
-  font-weight: 600;
-  margin-top: 8px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 10px;
-  padding: 6px 14px;
-  display: inline-block;
+  font-size: 18px; font-weight: 600; margin-top: 8px;
+  background: rgba(255,255,255,0.15); border-radius: 10px;
+  padding: 6px 16px; display: inline-block;
 }
 .header p { font-size: 13px; margin-top: 6px; opacity: 0.85; }
-.progress-bar-wrap {
-  background: #f0fff4;
-  border-bottom: 2px solid #c6f6d5;
-  padding: 14px 20px;
-}
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #276749;
-}
-.progress-track {
-  background: #c6f6d5;
-  border-radius: 99px;
-  height: 10px;
-  overflow: hidden;
-}
-.progress-fill {
-  background: linear-gradient(90deg, #276749, #38a169);
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.35s ease;
-  width: 0%;
-}
-.progress-complete {
-  background: #f0fff4;
-  border: 2px solid #38a169;
-  border-radius: 10px;
-  padding: 8px 14px;
-  margin-top: 10px;
-  font-size: 13px;
-  color: #276749;
-  font-weight: 700;
-  text-align: center;
-  display: none;
-}
-.body { padding: 20px; }
-.section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
-  margin-top: 4px;
-}
-.school-list { display: flex; flex-direction: column; gap: 8px; }
-.school-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f7fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 10px 12px;
-  transition: border-color 0.2s, background 0.2s;
-}
-.school-row.ranked {
-  background: #f0fff4;
-  border-color: #68d391;
-}
-.school-row.locked {
-  background: #f7fafc;
-  border-color: #e2e8f0;
-  opacity: 0.55;
-}
-.school-rank-badge {
-  min-width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  color: #718096;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 14px;
-  flex-shrink: 0;
-  transition: background 0.2s, color 0.2s;
-}
-.school-row.ranked .school-rank-badge {
-  background: linear-gradient(135deg, #276749, #38a169);
-  color: white;
-}
-.school-name {
-  flex: 1;
-  font-size: 14px;
-  color: #2d3748;
-  line-height: 1.4;
-  direction: auto;
-}
-.rank-select {
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #4a5568;
-  background: white;
-  outline: none;
-  cursor: pointer;
-  min-width: 72px;
-  transition: border-color 0.2s;
-  direction: ltr;
-}
-.rank-select:focus { border-color: #276749; }
-.rank-select.has-rank {
-  border-color: #38a169;
-  background: #f0fff4;
-  color: #276749;
-}
-.rank-select:disabled {
-  cursor: not-allowed;
-  background: #edf2f7;
-  color: #a0aec0;
-}
-.btn-confirm {
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #276749, #38a169);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 17px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 20px;
-  box-shadow: 0 4px 14px rgba(39,103,73,.35);
-  transition: opacity 0.2s, transform 0.1s;
-  display: none;
-}
-.btn-confirm:hover { opacity: 0.92; }
-.btn-confirm:active { transform: scale(0.98); }
-.btn-reset {
-  width: 100%;
-  padding: 11px;
-  background: #fff5f5;
-  color: #c53030;
-  border: 2px solid #fed7d7;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background 0.2s;
-}
-.btn-reset:hover { background: #fed7d7; }
-.result-box {
-  display: none;
-  background: #f0fff4;
-  border: 2px solid #68d391;
-  border-radius: 14px;
-  padding: 18px;
-  margin-top: 20px;
-}
-.result-box h3 { color: #276749; font-size: 15px; margin-bottom: 12px; text-align: center; }
-.result-list { list-style: none; }
-.result-list li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid #c6f6d5;
-  font-size: 14px;
-  color: #2d3748;
-}
-.result-list li:last-child { border-bottom: none; }
-.result-rank {
-  min-width: 28px; height: 28px;
-  background: linear-gradient(135deg, #276749, #38a169);
-  color: white; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 13px; flex-shrink: 0;
-}
-.btn-pdf {
-  width: 100%;
-  padding: 13px;
-  background: #276749;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 14px;
-  transition: opacity 0.2s;
-}
-.btn-pdf:hover { opacity: 0.88; }
-.error-page {
-  text-align: center;
-  padding: 60px 24px;
-  color: #c53030;
-}
-.error-page h2 { font-size: 22px; margin-bottom: 12px; }
-.error-page p { font-size: 14px; color: #718096; line-height: 1.7; }
-/* Pre-confirmed section */
+
+/* ── Pre-confirmed section ── */
 .pre-section {
-  background: #fffbeb;
-  border: 2px solid #f6ad55;
-  border-radius: 14px;
-  padding: 14px;
-  margin: 0 20px 16px;
+  background: #fffbeb; border-bottom: 2px solid #f6ad55;
+  padding: 14px 20px;
 }
 .pre-section-title {
   font-size: 13px; font-weight: 700; color: #b7791f; margin-bottom: 10px;
 }
 .pre-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 0; border-bottom: 1px solid #fbd38d;
-  font-size: 13px; color: #744210;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  background: white; border: 1.5px solid #fbd38d;
+  margin-bottom: 6px;
 }
-.pre-item:last-child { border-bottom: none; }
+.pre-item:last-child { margin-bottom: 0; }
 .pre-badge {
-  min-width: 24px; height: 24px; border-radius: 50%;
+  min-width: 28px; height: 28px; border-radius: 50%;
   background: #f6ad55; color: white;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; flex-shrink: 0;
+  font-size: 13px; flex-shrink: 0;
 }
+.pre-item-info { flex: 1; }
+.pre-specialty { font-size: 13px; font-weight: 700; color: #744210; }
+.pre-institution { font-size: 11px; color: #b7791f; margin-top: 2px; }
+
+/* ── Progress bar ── */
+.progress-wrap {
+  background: #f0fff4; border-bottom: 2px solid #c6f6d5;
+  padding: 14px 20px;
+}
+.progress-top {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; font-weight: 700; color: #276749; margin-bottom: 8px;
+}
+.progress-track {
+  background: #c6f6d5; border-radius: 99px; height: 10px; overflow: hidden;
+}
+.progress-fill {
+  background: linear-gradient(90deg, #276749, #38a169);
+  height: 100%; border-radius: 99px;
+  transition: width 0.35s ease; width: 0%;
+}
+.progress-done {
+  margin-top: 10px; padding: 8px 12px;
+  background: white; border: 2px solid #38a169; border-radius: 10px;
+  font-size: 13px; font-weight: 700; color: #276749;
+  text-align: center; display: none;
+}
+
+/* ── School list ── */
+.list-wrap { padding: 16px 20px; }
+.list-header {
+  font-size: 12px; font-weight: 700; color: #aaa;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 10px; text-align: center;
+}
+
+.school-card {
+  display: flex; align-items: center; gap: 12px;
+  border: 2px solid #e2e8f0; border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 8px;
+  background: #f7fafc; cursor: pointer;
+  transition: all 0.2s; user-select: none;
+}
+.school-card:active { transform: scale(0.98); }
+.school-card.selected {
+  background: #f0fff4; border-color: #68d391;
+}
+.school-card.locked {
+  opacity: 0.45; cursor: not-allowed;
+}
+
+.card-num {
+  min-width: 34px; height: 34px; border-radius: 50%;
+  background: #e2e8f0; color: #718096;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.school-card.selected .card-num {
+  background: linear-gradient(135deg, #276749, #38a169);
+  color: white;
+}
+
+.card-info { flex: 1; min-width: 0; }
+.card-specialty {
+  font-size: 14px; font-weight: 700; color: #1a4731;
+  line-height: 1.3;
+}
+.school-card.selected .card-specialty { color: #276749; }
+.card-sub {
+  font-size: 12px; color: #718096; margin-top: 3px; line-height: 1.4;
+}
+.card-sub span { display: inline-block; margin-left: 8px; }
+
+.card-check {
+  min-width: 26px; height: 26px; border-radius: 50%;
+  border: 2.5px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+  transition: all 0.2s; color: transparent;
+}
+.school-card.selected .card-check {
+  background: #38a169; border-color: #38a169; color: white;
+}
+
+/* ── Buttons ── */
+.btn-wrap { padding: 0 20px 20px; }
+.btn-confirm {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #1a4731, #276749);
+  color: white; border: none; border-radius: 12px;
+  font-size: 17px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(39,103,73,.35);
+  transition: opacity 0.2s, transform 0.1s;
+  display: none; margin-bottom: 10px;
+}
+.btn-confirm:hover { opacity: 0.92; }
+.btn-confirm:active { transform: scale(0.98); }
+.btn-reset {
+  width: 100%; padding: 11px;
+  background: #fff5f5; color: #c53030;
+  border: 2px solid #fed7d7; border-radius: 10px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-reset:hover { background: #fed7d7; }
+
+/* ── Result box ── */
+.result-box {
+  display: none; margin: 0 20px 20px;
+  background: #f0fff4; border: 2px solid #68d391;
+  border-radius: 14px; padding: 18px;
+}
+.result-box h3 { color: #276749; font-size: 15px; margin-bottom: 14px; text-align: center; }
+.result-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid #c6f6d5;
+}
+.result-item:last-child { border-bottom: none; }
+.result-dot {
+  min-width: 10px; height: 10px; border-radius: 50%;
+  background: #38a169; margin-top: 5px; flex-shrink: 0;
+}
+.result-item-info { flex: 1; }
+.result-specialty { font-size: 14px; font-weight: 700; color: #1a4731; }
+.result-sub { font-size: 12px; color: #718096; margin-top: 2px; }
+.btn-pdf {
+  width: 100%; padding: 13px;
+  background: #276749; color: white;
+  border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  margin-top: 14px; transition: opacity 0.2s;
+}
+.btn-pdf:hover { opacity: 0.88; }
+
+/* ── Error page ── */
+.error-page { text-align: center; padding: 60px 24px; color: #c53030; }
+.error-page h2 { font-size: 22px; margin-bottom: 12px; }
+.error-page p { font-size: 14px; color: #718096; line-height: 1.7; }
+
+/* ── Print ── */
 @media print {
   body { background: white; padding: 0; }
   .card { box-shadow: none; border-radius: 0; max-width: 100%; }
-  .btn-confirm, .btn-reset, .btn-pdf, .school-list, .progress-bar-wrap,
-  .section-title, .rank-select { display: none !important; }
-  .result-box { display: block !important; border: none; }
+  .progress-wrap, .list-wrap, .btn-wrap, .btn-reset, .btn-pdf { display: none !important; }
+  .result-box { display: block !important; border: none; margin: 0; }
   .pre-section { display: block !important; }
 }
 </style>
 </head>
 <body>
-<div class="card">
-  <div id="app"></div>
-</div>
+<div class="card" id="mainCard"></div>
+
 <script>
-// ── LZ decompression with base64 fallback ────────────────────────────────────
+// ── Decompression ─────────────────────────────────────────────────────────────
 function decodeParam(str) {
   if (!str) return '';
-  // Try LZ-string first (new URLs)
   try {
     var lz = LZString.decompressFromEncodedURIComponent(str);
     if (lz && lz.length > 0) return lz;
   } catch(e) {}
-  // Fallback: base64 (old URLs)
   try {
     var s = str.replace(/-/g, '+').replace(/_/g, '/');
     while (s.length % 4) s += '=';
     return decodeURIComponent(escape(atob(s)));
   } catch(e) {}
-  // Last resort: plain text
   try { return decodeURIComponent(str); } catch(e) { return str; }
 }
 
@@ -302,283 +231,255 @@ function getParam(name) {
     if (eq < 0) continue;
     try {
       var k = decodeURIComponent(parts[i].substring(0, eq));
-      var v = decodeURIComponent(parts[i].substring(eq + 1));
+      var v = parts[i].substring(eq + 1); // raw — decompression handles encoding
       if (k === name) return v;
     } catch(e) {}
   }
   return '';
 }
 
-var studentName  = getParam('n').trim();
-var schoolsParam = getParam('s');
-var preParam     = getParam('pre');
-var maxParam     = parseInt(getParam('max'), 10);
-var MAX          = (maxParam > 0) ? maxParam : 6;
-
-var schools = schoolsParam
-  ? decodeParam(schoolsParam).split('|').map(function(s){ return s.trim(); }).filter(Boolean)
-  : [];
-
-var preSchools = preParam
-  ? decodeParam(preParam).split('|').map(function(s){ return s.trim(); }).filter(Boolean)
-  : [];
-
-var app = document.getElementById('app');
-
-if (!studentName || schools.length < 2) {
-  app.innerHTML =
-    '<div class="error-page">' +
-    '<h2>❌ رابط غير صحيح</h2>' +
-    '<p>Lien invalide<br>يرجى التواصل مع المسؤول / Contactez votre responsable</p>' +
-    '</div>';
-} else {
-  // Render pre-confirmed section before the main app
-  if (preSchools.length > 0) {
-    var preHtml =
-      '<div class="pre-section">' +
-      '<div class="pre-section-title">⚠️ المراكز المحددة مسبقاً من طرف المؤسسة — لا تحتاج إلى ترتيب :<br>' +
-      '<span style="font-size:11px;font-weight:400">Centres déjà cochés automatiquement par l\'établissement — pas besoin de les classer</span></div>';
-    preSchools.forEach(function(s) {
-      preHtml += '<div class="pre-item"><div class="pre-badge">✓</div><div>' + escHtml(s) + '</div></div>';
-    });
-    preHtml += '</div>';
-    app.insertAdjacentHTML('beforebegin', preHtml);
-  }
-  buildPage(studentName, schools);
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function buildPage(name, items) {
-  var n = items.length;
-  // ranks array: 0 = not selected, else rank number
-  var ranks = new Array(n).fill(0);
-  var confirmed = false;
+// ── Parse label → {specialty, school, city} ──────────────────────────────────
+function parseLabel(label) {
+  var parts = label.split(' — ');
+  var specialty = (parts[0] || label).trim();
+  var fullInst  = (parts[1] || '').trim();
+  var instParts = fullInst.split(' - ');
+  var city      = instParts.length > 1 ? instParts[0].trim() : '';
+  var school    = instParts.length > 1 ? instParts.slice(1).join(' - ').trim() : fullInst;
+  return { specialty: specialty, school: school, city: city, full: fullInst };
+}
 
-  function countRanked() {
-    var c = 0;
-    for (var i = 0; i < n; i++) if (ranks[i] > 0) c++;
-    return c;
+// ── Read URL params ──────────────────────────────────────────────────────────
+var studentName = decodeParam(getParam('n')) || '';
+// name is percent-encoded normally
+try { studentName = decodeURIComponent(getParam('n')); } catch(e) {}
+
+var MAX        = parseInt(decodeParam(getParam('max')) || getParam('max'), 10) || 6;
+var schools    = decodeParam(getParam('s')).split('|').map(function(s){ return s.trim(); }).filter(Boolean);
+var preSchools = decodeParam(getParam('pre')).split('|').map(function(s){ return s.trim(); }).filter(Boolean);
+
+var root = document.getElementById('mainCard');
+
+if (!studentName || schools.length < 2) {
+  root.innerHTML =
+    '<div class="error-page"><h2>❌ رابط غير صحيح</h2>' +
+    '<p>Lien invalide<br>يرجى التواصل مع المسؤول / Contactez votre responsable</p></div>';
+} else {
+  buildPage();
+}
+
+// ── Build page ───────────────────────────────────────────────────────────────
+function buildPage() {
+  var n = schools.length;
+  var selected = {}; // idx → true
+
+  function countSelected() {
+    return Object.keys(selected).filter(function(k){ return selected[k]; }).length;
+  }
+
+  function toggle(idx) {
+    var cnt = countSelected();
+    if (selected[idx]) {
+      delete selected[idx];
+    } else {
+      if (cnt >= MAX) return; // locked
+      selected[idx] = true;
+    }
+    render();
   }
 
   function render() {
-    var ranked = countRanked();
-    var maxReached = ranked >= MAX;
+    var cnt    = countSelected();
+    var maxHit = cnt >= MAX;
 
     // Progress
-    var pct = Math.round((ranked / MAX) * 100);
-    var progressFill = document.getElementById('progressFill');
-    var progressLabel = document.getElementById('progressLabel');
-    var progressComplete = document.getElementById('progressComplete');
-    if (progressFill) {
-      progressFill.style.width = pct + '%';
-      progressLabel.textContent = ranked + ' / ' + MAX;
-      if (maxReached) {
-        progressComplete.style.display = 'block';
-      } else {
-        progressComplete.style.display = 'none';
-      }
-    }
+    document.getElementById('progressFill').style.width = Math.round(cnt / MAX * 100) + '%';
+    document.getElementById('progressCount').textContent = cnt + ' / ' + MAX;
+    document.getElementById('progressDone').style.display = maxHit ? 'block' : 'none';
 
-    // Build sorted order: ranked first (by rank), then unranked
-    var indices = [];
-    for (var i = 0; i < n; i++) indices.push(i);
-    indices.sort(function(a, b) {
-      var ra = ranks[a], rb = ranks[b];
-      if (ra > 0 && rb > 0) return ra - rb;
-      if (ra > 0) return -1;
-      if (rb > 0) return 1;
-      return a - b;
-    });
-
-    // Used ranks set
-    var usedRanks = {};
-    for (var i = 0; i < n; i++) {
-      if (ranks[i] > 0) usedRanks[ranks[i]] = true;
-    }
-
-    // Rebuild school rows
+    // Rebuild cards
     var list = document.getElementById('schoolList');
-    if (!list) return;
     list.innerHTML = '';
+    schools.forEach(function(label, idx) {
+      var isSel    = !!selected[idx];
+      var isLocked = !isSel && maxHit;
+      var p        = parseLabel(label);
 
-    indices.forEach(function(idx) {
-      var r = ranks[idx];
-      var isLocked = (r === 0 && maxReached);
+      var card = document.createElement('div');
+      card.className = 'school-card' + (isSel ? ' selected' : '') + (isLocked ? ' locked' : '');
 
-      var row = document.createElement('div');
-      row.className = 'school-row' + (r > 0 ? ' ranked' : '') + (isLocked ? ' locked' : '');
+      var num = document.createElement('div');
+      num.className = 'card-num';
+      num.textContent = idx + 1;
 
-      var badge = document.createElement('div');
-      badge.className = 'school-rank-badge';
-      badge.textContent = r > 0 ? r : '—';
+      var info = document.createElement('div');
+      info.className = 'card-info';
+      info.innerHTML =
+        '<div class="card-specialty">' + esc(p.specialty) + '</div>' +
+        '<div class="card-sub">' +
+          (p.school ? '<span>🏫 ' + esc(p.school) + '</span>' : '') +
+          (p.city   ? '<span>📍 ' + esc(p.city)   + '</span>' : '') +
+        '</div>';
 
-      var nameEl = document.createElement('div');
-      nameEl.className = 'school-name';
-      nameEl.textContent = items[idx];
+      var chk = document.createElement('div');
+      chk.className = 'card-check';
+      chk.textContent = '✓';
 
-      var sel = document.createElement('select');
-      sel.className = 'rank-select' + (r > 0 ? ' has-rank' : '');
-      sel.disabled = isLocked;
+      card.appendChild(num);
+      card.appendChild(info);
+      card.appendChild(chk);
 
-      // Blank option
-      var blank = document.createElement('option');
-      blank.value = '';
-      blank.textContent = '— Choix —';
-      sel.appendChild(blank);
-
-      // Rank options 1..MAX
-      for (var rank = 1; rank <= MAX; rank++) {
-        // Show this rank if: not used by another school, OR it's the current school's rank
-        if (!usedRanks[rank] || ranks[idx] === rank) {
-          var opt = document.createElement('option');
-          opt.value = rank;
-          opt.textContent = 'الأولوية ' + rank + ' / Choix ' + rank;
-          if (ranks[idx] === rank) opt.selected = true;
-          sel.appendChild(opt);
-        }
+      if (!isLocked) {
+        (function(i){ card.addEventListener('click', function(){ toggle(i); }); })(idx);
       }
-
-      (function(capturedIdx) {
-        sel.addEventListener('change', function() {
-          var val = parseInt(this.value, 10);
-          ranks[capturedIdx] = isNaN(val) ? 0 : val;
-          render();
-        });
-      })(idx);
-
-      row.appendChild(badge);
-      row.appendChild(nameEl);
-      row.appendChild(sel);
-      list.appendChild(row);
+      list.appendChild(card);
     });
 
     // Confirm button
-    var btnConfirm = document.getElementById('btnConfirm');
-    if (btnConfirm) {
-      btnConfirm.style.display = ranked === MAX ? 'block' : 'none';
-    }
+    document.getElementById('btnConfirm').style.display = (cnt === MAX) ? 'block' : 'none';
   }
 
-  // Initial HTML structure
-  app.innerHTML =
+  // ── Initial HTML ─────────────────────────────────────────────────────────
+  var preHtml = '';
+  if (preSchools.length > 0) {
+    preHtml = '<div class="pre-section">' +
+      '<div class="pre-section-title">⚠️ المراكز المحددة مسبقاً من طرف BTS — لا تحتاج إلى ترتيب :<br>' +
+      '<span style="font-size:11px;font-weight:400">Centres déjà cochés automatiquement par BTS — pas besoin de les classer</span></div>';
+    preSchools.forEach(function(s) {
+      var p = parseLabel(s);
+      preHtml +=
+        '<div class="pre-item">' +
+          '<div class="pre-badge">✓</div>' +
+          '<div class="pre-item-info">' +
+            '<div class="pre-specialty">' + esc(p.specialty) + '</div>' +
+            (p.full ? '<div class="pre-institution">🏫 ' + esc(p.full) + '</div>' : '') +
+          '</div>' +
+        '</div>';
+    });
+    preHtml += '</div>';
+  }
+
+  root.innerHTML =
     '<div class="header">' +
-      '<h1>🎓 BTS — اختيار الأولويات</h1>' +
-      '<div class="student-name">' + escHtml(name) + '</div>' +
-      '<p>اختر ' + MAX + ' مراكز بالترتيب &nbsp;|&nbsp; Choisissez ' + MAX + ' centres par ordre de priorité</p>' +
+      '<h1>🎓 BTS</h1>' +
+      '<div class="student-name">' + esc(studentName) + '</div>' +
+      '<p>اختر ' + MAX + ' مراكز &nbsp;|&nbsp; Choisissez ' + MAX + ' centres</p>' +
     '</div>' +
-    '<div class="progress-bar-wrap">' +
-      '<div class="progress-label">' +
+    preHtml +
+    '<div class="progress-wrap">' +
+      '<div class="progress-top">' +
         '<span>📊 التقدم / Progression</span>' +
-        '<span id="progressLabel">0 / ' + MAX + '</span>' +
+        '<span id="progressCount">0 / ' + MAX + '</span>' +
       '</div>' +
       '<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>' +
-      '<div class="progress-complete" id="progressComplete">' +
-        '✅ اكتملت ' + MAX + ' أولويات — انقر تأكيد / ' + MAX + ' priorités complètes — cliquez Confirmer' +
+      '<div class="progress-done" id="progressDone">' +
+        '✅ تم اختيار ' + MAX + ' مراكز — انقر تأكيد / ' + MAX + ' centres choisis — cliquez Confirmer' +
       '</div>' +
     '</div>' +
-    '<div class="body">' +
-      '<div class="section-title">المراكز المتاحة / Centres disponibles (' + n + ')</div>' +
-      '<div class="school-list" id="schoolList"></div>' +
+    '<div class="list-wrap">' +
+      '<div class="list-header">المراكز المتاحة / Centres disponibles (' + n + ')</div>' +
+      '<div id="schoolList"></div>' +
+    '</div>' +
+    '<div class="btn-wrap">' +
       '<button class="btn-confirm" id="btnConfirm" onclick="confirmChoices()">✅ تأكيد الاختيارات / Confirmer les choix</button>' +
       '<button class="btn-reset" onclick="resetAll()">🔄 إعادة التعيين / Réinitialiser</button>' +
     '</div>' +
     '<div class="result-box" id="resultBox">' +
-      '<h3>✅ اختياراتك النهائية / Vos choix finaux :</h3>' +
-      '<ul class="result-list" id="resultList"></ul>' +
+      '<h3>✅ اختياراتك النهائية / Vos centres choisis :</h3>' +
+      '<div id="resultList"></div>' +
       '<button class="btn-pdf" onclick="downloadPdf()">📄 تحميل PDF / Télécharger PDF</button>' +
     '</div>';
 
   render();
 
+  // ── Confirm ───────────────────────────────────────────────────────────────
   window.confirmChoices = function() {
-    if (countRanked() < MAX) return;
+    if (countSelected() < MAX) return;
     if (!confirm('هل أنت متأكد من اختياراتك؟ / Confirmez-vous vos choix ?')) return;
-    confirmed = true;
 
-    // Build sorted result
-    var chosen = [];
-    for (var i = 0; i < n; i++) {
-      if (ranks[i] > 0) chosen.push({rank: ranks[i], name: items[i]});
-    }
-    chosen.sort(function(a, b) { return a.rank - b.rank; });
-
+    var chosen = schools.filter(function(_, i){ return !!selected[i]; });
     var listEl = document.getElementById('resultList');
     listEl.innerHTML = '';
-    chosen.forEach(function(item) {
-      var li = document.createElement('li');
-      li.innerHTML =
-        '<div class="result-rank">' + item.rank + '</div>' +
-        '<div>' + escHtml(item.name) + '</div>';
-      listEl.appendChild(li);
+    chosen.forEach(function(label) {
+      var p = parseLabel(label);
+      var item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML =
+        '<div class="result-dot"></div>' +
+        '<div class="result-item-info">' +
+          '<div class="result-specialty">' + esc(p.specialty) + '</div>' +
+          (p.full ? '<div class="result-sub">🏫 ' + esc(p.full) + '</div>' : '') +
+        '</div>';
+      listEl.appendChild(item);
     });
 
     document.getElementById('resultBox').style.display = 'block';
-    document.getElementById('resultBox').scrollIntoView({behavior: 'smooth'});
+    document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
   };
 
+  // ── Reset ─────────────────────────────────────────────────────────────────
   window.resetAll = function() {
     if (!confirm('هل تريد إعادة تعيين جميع الاختيارات؟ / Réinitialiser tous les choix ?')) return;
-    ranks = new Array(n).fill(0);
-    confirmed = false;
+    selected = {};
     document.getElementById('resultBox').style.display = 'none';
     render();
   };
 
+  // ── PDF ───────────────────────────────────────────────────────────────────
   window.downloadPdf = function() {
-    var chosen = [];
-    for (var i = 0; i < n; i++) {
-      if (ranks[i] > 0) chosen.push({rank: ranks[i], name: items[i]});
-    }
-    chosen.sort(function(a, b) { return a.rank - b.rank; });
+    var chosen = schools.filter(function(_, i){ return !!selected[i]; });
 
-    var rows = chosen.map(function(item) {
-      return '<tr><td style="padding:8px 12px;font-weight:800;color:#276749;text-align:center;">' + item.rank + '</td>' +
-             '<td style="padding:8px 12px;">' + escHtml(item.name) + '</td></tr>';
+    var preRows = preSchools.map(function(s) {
+      var p = parseLabel(s);
+      return '<tr><td style="padding:8px 12px;text-align:center;color:#b7791f;">✓</td>' +
+             '<td style="padding:8px 12px;font-weight:700;">' + esc(p.specialty) + '</td>' +
+             '<td style="padding:8px 12px;color:#718096;">' + esc(p.full) + '</td></tr>';
     }).join('');
 
-    // Pre-confirmed section for PDF
-    var preSection = '';
-    if (preSchools.length > 0) {
-      var preRows = preSchools.map(function(s) {
-        return '<tr><td style="padding:8px 12px;text-align:center;">✓</td><td style="padding:8px 12px;">' + escHtml(s) + '</td></tr>';
-      }).join('');
-      preSection =
-        '<h3 style="color:#b7791f;margin-top:24px;margin-bottom:8px;">⚠️ المراكز المحددة مسبقاً من طرف المؤسسة</h3>' +
-        '<table style="border:2px solid #f6ad55"><thead><tr>' +
-        '<th style="background:#f6ad55;color:white;padding:8px;width:60px">الحالة</th>' +
-        '<th style="background:#f6ad55;color:white;padding:8px">المركز / Centre</th>' +
-        '</tr></thead><tbody>' + preRows + '</tbody></table>';
-    }
+    var chosenRows = chosen.map(function(s) {
+      var p = parseLabel(s);
+      return '<tr><td style="padding:8px 12px;text-align:center;">✅</td>' +
+             '<td style="padding:8px 12px;font-weight:700;">' + esc(p.specialty) + '</td>' +
+             '<td style="padding:8px 12px;color:#718096;">' + esc(p.full) + '</td></tr>';
+    }).join('');
+
+    var preSect = preSchools.length > 0 ?
+      '<h3 style="color:#b7791f;margin:24px 0 8px">⚠️ محددة مسبقاً من طرف BTS</h3>' +
+      '<table style="border:2px solid #f6ad55"><thead><tr>' +
+      '<th style="background:#f6ad55;color:white;padding:8px;width:50px">الحالة</th>' +
+      '<th style="background:#f6ad55;color:white;padding:8px">الشعبة</th>' +
+      '<th style="background:#f6ad55;color:white;padding:8px">المؤسسة</th>' +
+      '</tr></thead><tbody>' + preRows + '</tbody></table>' : '';
 
     var win = window.open('', '_blank');
     win.document.write(
       '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-      '<title>BTS — ' + escHtml(name) + '</title>' +
+      '<title>BTS — ' + esc(studentName) + '</title>' +
       '<style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl;}' +
       'h2{color:#276749;text-align:center;margin-bottom:4px;}' +
       '.sub{text-align:center;color:#718096;font-size:13px;margin-bottom:20px;}' +
-      'table{width:100%;border-collapse:collapse;border:2px solid #276749;border-radius:8px;overflow:hidden;}' +
-      'th{background:#276749;color:white;padding:10px 12px;font-size:13px;}' +
+      'table{width:100%;border-collapse:collapse;margin-top:4px;}' +
+      'th{background:#276749;color:white;padding:10px;}' +
       'tr:nth-child(even){background:#f0fff4;}' +
       'td{border-bottom:1px solid #c6f6d5;}' +
       '.footer{text-align:center;margin-top:30px;font-size:11px;color:#aaa;}' +
       '</style></head><body>' +
-      '<h2>🎓 BTS — اختيار الأولويات</h2>' +
-      '<div class="sub">' + escHtml(name) + ' &nbsp;|&nbsp; ' + new Date().toLocaleDateString('fr-MA') + '</div>' +
-      '<table><thead><tr>' +
-      '<th style="width:80px">الأولوية / Priorité</th>' +
-      '<th>المركز / Centre BTS</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table>' +
-      preSection +
-      '<div class="footer">Document généré via CPGE/BTS Massar Tool</div>' +
+      '<h2>🎓 BTS — اختيار المراكز</h2>' +
+      '<div class="sub">' + esc(studentName) + ' &nbsp;|&nbsp; ' + new Date().toLocaleDateString('fr-MA') + '</div>' +
+      '<table style="border:2px solid #276749"><thead><tr>' +
+      '<th style="width:50px">الحالة</th><th>الشعبة</th><th>المؤسسة</th>' +
+      '</tr></thead><tbody>' + chosenRows + '</tbody></table>' +
+      preSect +
+      '<div class="footer">Document généré via BTS Massar Tool</div>' +
       '</body></html>'
     );
     win.document.close();
     setTimeout(function(){ win.print(); }, 400);
   };
-}
-
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

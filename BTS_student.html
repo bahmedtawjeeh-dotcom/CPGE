@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTS — ترتيب الأولويات</title>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: linear-gradient(135deg, #1a4731 0%, #276749 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.card {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.header {
+  background: linear-gradient(135deg, #1a4731, #276749);
+  color: white;
+  padding: 28px 24px;
+  text-align: center;
+}
+.header h1 { font-size: 22px; font-weight: 700; }
+.header .student-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 8px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 6px 14px;
+  display: inline-block;
+}
+.header p { font-size: 13px; margin-top: 6px; opacity: 0.85; }
+.progress-bar-wrap {
+  background: #f0fff4;
+  border-bottom: 2px solid #c6f6d5;
+  padding: 14px 20px;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #276749;
+}
+.progress-track {
+  background: #c6f6d5;
+  border-radius: 99px;
+  height: 10px;
+  overflow: hidden;
+}
+.progress-fill {
+  background: linear-gradient(90deg, #276749, #38a169);
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.35s ease;
+  width: 0%;
+}
+.progress-complete {
+  background: #f0fff4;
+  border: 2px solid #38a169;
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #276749;
+  font-weight: 700;
+  text-align: center;
+  display: none;
+}
+.body { padding: 20px; }
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  margin-top: 4px;
+}
+.school-list { display: flex; flex-direction: column; gap: 8px; }
+.school-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.school-row.ranked {
+  background: #f0fff4;
+  border-color: #68d391;
+}
+.school-row.locked {
+  background: #f7fafc;
+  border-color: #e2e8f0;
+  opacity: 0.55;
+}
+.school-rank-badge {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #718096;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.school-row.ranked .school-rank-badge {
+  background: linear-gradient(135deg, #276749, #38a169);
+  color: white;
+}
+.school-name {
+  flex: 1;
+  font-size: 14px;
+  color: #2d3748;
+  line-height: 1.4;
+  direction: auto;
+}
+.rank-select {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a5568;
+  background: white;
+  outline: none;
+  cursor: pointer;
+  min-width: 72px;
+  transition: border-color 0.2s;
+  direction: ltr;
+}
+.rank-select:focus { border-color: #276749; }
+.rank-select.has-rank {
+  border-color: #38a169;
+  background: #f0fff4;
+  color: #276749;
+}
+.rank-select:disabled {
+  cursor: not-allowed;
+  background: #edf2f7;
+  color: #a0aec0;
+}
+.btn-confirm {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #276749, #38a169);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: 0 4px 14px rgba(39,103,73,.35);
+  transition: opacity 0.2s, transform 0.1s;
+  display: none;
+}
+.btn-confirm:hover { opacity: 0.92; }
+.btn-confirm:active { transform: scale(0.98); }
+.btn-reset {
+  width: 100%;
+  padding: 11px;
+  background: #fff5f5;
+  color: #c53030;
+  border: 2px solid #fed7d7;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.btn-reset:hover { background: #fed7d7; }
+.result-box {
+  display: none;
+  background: #f0fff4;
+  border: 2px solid #68d391;
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 20px;
+}
+.result-box h3 { color: #276749; font-size: 15px; margin-bottom: 12px; text-align: center; }
+.result-list { list-style: none; }
+.result-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #c6f6d5;
+  font-size: 14px;
+  color: #2d3748;
+}
+.result-list li:last-child { border-bottom: none; }
+.result-rank {
+  min-width: 28px; height: 28px;
+  background: linear-gradient(135deg, #276749, #38a169);
+  color: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; flex-shrink: 0;
+}
+.btn-pdf {
+  width: 100%;
+  padding: 13px;
+  background: #276749;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 14px;
+  transition: opacity 0.2s;
+}
+.btn-pdf:hover { opacity: 0.88; }
+.error-page {
+  text-align: center;
+  padding: 60px 24px;
+  color: #c53030;
+}
+.error-page h2 { font-size: 22px; margin-bottom: 12px; }
+.error-page p { font-size: 14px; color: #718096; line-height: 1.7; }
+/* Pre-confirmed section */
+.pre-section {
+  background: #fffbeb;
+  border: 2px solid #f6ad55;
+  border-radius: 14px;
+  padding: 14px;
+  margin: 0 20px 16px;
+}
+.pre-section-title {
+  font-size: 13px; font-weight: 700; color: #b7791f; margin-bottom: 10px;
+}
+.pre-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid #fbd38d;
+  font-size: 13px; color: #744210;
+}
+.pre-item:last-child { border-bottom: none; }
+.pre-badge {
+  min-width: 24px; height: 24px; border-radius: 50%;
+  background: #f6ad55; color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+}
+@media print {
+  body { background: white; padding: 0; }
+  .card { box-shadow: none; border-radius: 0; max-width: 100%; }
+  .btn-confirm, .btn-reset, .btn-pdf, .school-list, .progress-bar-wrap,
+  .section-title, .rank-select { display: none !important; }
+  .result-box { display: block !important; border: none; }
+  .pre-section { display: block !important; }
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="app"></div>
+</div>
+<script>
+// ── LZ decompression with base64 fallback ────────────────────────────────────
+function decodeParam(str) {
+  if (!str) return '';
+  // Try LZ-string first (new URLs)
+  try {
+    var lz = LZString.decompressFromEncodedURIComponent(str);
+    if (lz && lz.length > 0) return lz;
+  } catch(e) {}
+  // Fallback: base64 (old URLs)
+  try {
+    var s = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    return decodeURIComponent(escape(atob(s)));
+  } catch(e) {}
+  // Last resort: plain text
+  try { return decodeURIComponent(str); } catch(e) { return str; }
+}
+
+function getParam(name) {
+  var q = window.location.search.replace(/^\?/, '');
+  var parts = q.split('&');
+  for (var i = 0; i < parts.length; i++) {
+    var eq = parts[i].indexOf('=');
+    if (eq < 0) continue;
+    try {
+      var k = decodeURIComponent(parts[i].substring(0, eq));
+      var v = decodeURIComponent(parts[i].substring(eq + 1));
+      if (k === name) return v;
+    } catch(e) {}
+  }
+  return '';
+}
+
+var studentName  = getParam('n').trim();
+var schoolsParam = getParam('s');
+var preParam     = getParam('pre');
+var maxParam     = parseInt(getParam('max'), 10);
+var MAX          = (maxParam > 0) ? maxParam : 6;
+
+var schools = schoolsParam
+  ? decodeParam(schoolsParam).split('|').map(function(s){ return s.trim(); }).filter(Boolean)
+  : [];
+
+var preSchools = preParam
+  ? decodeParam(preParam).split('|').map(function(s){ return s.trim(); }).filter(Boolean)
+  : [];
+
+var app = document.getElementById('app');
+
+if (!studentName || schools.length < 2) {
+  app.innerHTML =
+    '<div class="error-page">' +
+    '<h2>❌ رابط غير صحيح</h2>' +
+    '<p>Lien invalide<br>يرجى التواصل مع المسؤول / Contactez votre responsable</p>' +
+    '</div>';
+} else {
+  // Render pre-confirmed section before the main app
+  if (preSchools.length > 0) {
+    var preHtml =
+      '<div class="pre-section">' +
+      '<div class="pre-section-title">⚠️ المراكز المحددة مسبقاً من طرف المؤسسة — لا تحتاج إلى ترتيب :<br>' +
+      '<span style="font-size:11px;font-weight:400">Centres déjà cochés automatiquement par l\'établissement — pas besoin de les classer</span></div>';
+    preSchools.forEach(function(s) {
+      preHtml += '<div class="pre-item"><div class="pre-badge">✓</div><div>' + escHtml(s) + '</div></div>';
+    });
+    preHtml += '</div>';
+    app.insertAdjacentHTML('beforebegin', preHtml);
+  }
+  buildPage(studentName, schools);
+}
+
+function buildPage(name, items) {
+  var n = items.length;
+  // ranks array: 0 = not selected, else rank number
+  var ranks = new Array(n).fill(0);
+  var confirmed = false;
+
+  function countRanked() {
+    var c = 0;
+    for (var i = 0; i < n; i++) if (ranks[i] > 0) c++;
+    return c;
+  }
+
+  function render() {
+    var ranked = countRanked();
+    var maxReached = ranked >= MAX;
+
+    // Progress
+    var pct = Math.round((ranked / MAX) * 100);
+    var progressFill = document.getElementById('progressFill');
+    var progressLabel = document.getElementById('progressLabel');
+    var progressComplete = document.getElementById('progressComplete');
+    if (progressFill) {
+      progressFill.style.width = pct + '%';
+      progressLabel.textContent = ranked + ' / ' + MAX;
+      if (maxReached) {
+        progressComplete.style.display = 'block';
+      } else {
+        progressComplete.style.display = 'none';
+      }
+    }
+
+    // Build sorted order: ranked first (by rank), then unranked
+    var indices = [];
+    for (var i = 0; i < n; i++) indices.push(i);
+    indices.sort(function(a, b) {
+      var ra = ranks[a], rb = ranks[b];
+      if (ra > 0 && rb > 0) return ra - rb;
+      if (ra > 0) return -1;
+      if (rb > 0) return 1;
+      return a - b;
+    });
+
+    // Used ranks set
+    var usedRanks = {};
+    for (var i = 0; i < n; i++) {
+      if (ranks[i] > 0) usedRanks[ranks[i]] = true;
+    }
+
+    // Rebuild school rows
+    var list = document.getElementById('schoolList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    indices.forEach(function(idx) {
+      var r = ranks[idx];
+      var isLocked = (r === 0 && maxReached);
+
+      var row = document.createElement('div');
+      row.className = 'school-row' + (r > 0 ? ' ranked' : '') + (isLocked ? ' locked' : '');
+
+      var badge = document.createElement('div');
+      badge.className = 'school-rank-badge';
+      badge.textContent = r > 0 ? r : '—';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'school-name';
+      nameEl.textContent = items[idx];
+
+      var sel = document.createElement('select');
+      sel.className = 'rank-select' + (r > 0 ? ' has-rank' : '');
+      sel.disabled = isLocked;
+
+      // Blank option
+      var blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = '— Choix —';
+      sel.appendChild(blank);
+
+      // Rank options 1..MAX
+      for (var rank = 1; rank <= MAX; rank++) {
+        // Show this rank if: not used by another school, OR it's the current school's rank
+        if (!usedRanks[rank] || ranks[idx] === rank) {
+          var opt = document.createElement('option');
+          opt.value = rank;
+          opt.textContent = 'الأولوية ' + rank + ' / Choix ' + rank;
+          if (ranks[idx] === rank) opt.selected = true;
+          sel.appendChild(opt);
+        }
+      }
+
+      (function(capturedIdx) {
+        sel.addEventListener('change', function() {
+          var val = parseInt(this.value, 10);
+          ranks[capturedIdx] = isNaN(val) ? 0 : val;
+          render();
+        });
+      })(idx);
+
+      row.appendChild(badge);
+      row.appendChild(nameEl);
+      row.appendChild(sel);
+      list.appendChild(row);
+    });
+
+    // Confirm button
+    var btnConfirm = document.getElementById('btnConfirm');
+    if (btnConfirm) {
+      btnConfirm.style.display = ranked === MAX ? 'block' : 'none';
+    }
+  }
+
+  // Initial HTML structure
+  app.innerHTML =
+    '<div class="header">' +
+      '<h1>🎓 BTS — اختيار الأولويات</h1>' +
+      '<div class="student-name">' + escHtml(name) + '</div>' +
+      '<p>اختر ' + MAX + ' مراكز بالترتيب &nbsp;|&nbsp; Choisissez ' + MAX + ' centres par ordre de priorité</p>' +
+    '</div>' +
+    '<div class="progress-bar-wrap">' +
+      '<div class="progress-label">' +
+        '<span>📊 التقدم / Progression</span>' +
+        '<span id="progressLabel">0 / ' + MAX + '</span>' +
+      '</div>' +
+      '<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>' +
+      '<div class="progress-complete" id="progressComplete">' +
+        '✅ اكتملت ' + MAX + ' أولويات — انقر تأكيد / ' + MAX + ' priorités complètes — cliquez Confirmer' +
+      '</div>' +
+    '</div>' +
+    '<div class="body">' +
+      '<div class="section-title">المراكز المتاحة / Centres disponibles (' + n + ')</div>' +
+      '<div class="school-list" id="schoolList"></div>' +
+      '<button class="btn-confirm" id="btnConfirm" onclick="confirmChoices()">✅ تأكيد الاختيارات / Confirmer les choix</button>' +
+      '<button class="btn-reset" onclick="resetAll()">🔄 إعادة التعيين / Réinitialiser</button>' +
+    '</div>' +
+    '<div class="result-box" id="resultBox">' +
+      '<h3>✅ اختياراتك النهائية / Vos choix finaux :</h3>' +
+      '<ul class="result-list" id="resultList"></ul>' +
+      '<button class="btn-pdf" onclick="downloadPdf()">📄 تحميل PDF / Télécharger PDF</button>' +
+    '</div>';
+
+  render();
+
+  window.confirmChoices = function() {
+    if (countRanked() < MAX) return;
+    if (!confirm('هل أنت متأكد من اختياراتك؟ / Confirmez-vous vos choix ?')) return;
+    confirmed = true;
+
+    // Build sorted result
+    var chosen = [];
+    for (var i = 0; i < n; i++) {
+      if (ranks[i] > 0) chosen.push({rank: ranks[i], name: items[i]});
+    }
+    chosen.sort(function(a, b) { return a.rank - b.rank; });
+
+    var listEl = document.getElementById('resultList');
+    listEl.innerHTML = '';
+    chosen.forEach(function(item) {
+      var li = document.createElement('li');
+      li.innerHTML =
+        '<div class="result-rank">' + item.rank + '</div>' +
+        '<div>' + escHtml(item.name) + '</div>';
+      listEl.appendChild(li);
+    });
+
+    document.getElementById('resultBox').style.display = 'block';
+    document.getElementById('resultBox').scrollIntoView({behavior: 'smooth'});
+  };
+
+  window.resetAll = function() {
+    if (!confirm('هل تريد إعادة تعيين جميع الاختيارات؟ / Réinitialiser tous les choix ?')) return;
+    ranks = new Array(n).fill(0);
+    confirmed = false;
+    document.getElementById('resultBox').style.display = 'none';
+    render();
+  };
+
+  window.downloadPdf = function() {
+    var chosen = [];
+    for (var i = 0; i < n; i++) {
+      if (ranks[i] > 0) chosen.push({rank: ranks[i], name: items[i]});
+    }
+    chosen.sort(function(a, b) { return a.rank - b.rank; });
+
+    var rows = chosen.map(function(item) {
+      return '<tr><td style="padding:8px 12px;font-weight:800;color:#276749;text-align:center;">' + item.rank + '</td>' +
+             '<td style="padding:8px 12px;">' + escHtml(item.name) + '</td></tr>';
+    }).join('');
+
+    // Pre-confirmed section for PDF
+    var preSection = '';
+    if (preSchools.length > 0) {
+      var preRows = preSchools.map(function(s) {
+        return '<tr><td style="padding:8px 12px;text-align:center;">✓</td><td style="padding:8px 12px;">' + escHtml(s) + '</td></tr>';
+      }).join('');
+      preSection =
+        '<h3 style="color:#b7791f;margin-top:24px;margin-bottom:8px;">⚠️ المراكز المحددة مسبقاً من طرف المؤسسة</h3>' +
+        '<table style="border:2px solid #f6ad55"><thead><tr>' +
+        '<th style="background:#f6ad55;color:white;padding:8px;width:60px">الحالة</th>' +
+        '<th style="background:#f6ad55;color:white;padding:8px">المركز / Centre</th>' +
+        '</tr></thead><tbody>' + preRows + '</tbody></table>';
+    }
+
+    var win = window.open('', '_blank');
+    win.document.write(
+      '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+      '<title>BTS — ' + escHtml(name) + '</title>' +
+      '<style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl;}' +
+      'h2{color:#276749;text-align:center;margin-bottom:4px;}' +
+      '.sub{text-align:center;color:#718096;font-size:13px;margin-bottom:20px;}' +
+      'table{width:100%;border-collapse:collapse;border:2px solid #276749;border-radius:8px;overflow:hidden;}' +
+      'th{background:#276749;color:white;padding:10px 12px;font-size:13px;}' +
+      'tr:nth-child(even){background:#f0fff4;}' +
+      'td{border-bottom:1px solid #c6f6d5;}' +
+      '.footer{text-align:center;margin-top:30px;font-size:11px;color:#aaa;}' +
+      '</style></head><body>' +
+      '<h2>🎓 BTS — اختيار الأولويات</h2>' +
+      '<div class="sub">' + escHtml(name) + ' &nbsp;|&nbsp; ' + new Date().toLocaleDateString('fr-MA') + '</div>' +
+      '<table><thead><tr>' +
+      '<th style="width:80px">الأولوية / Priorité</th>' +
+      '<th>المركز / Centre BTS</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>' +
+      preSection +
+      '<div class="footer">Document généré via CPGE/BTS Massar Tool</div>' +
+      '</body></html>'
+    );
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 400);
+  };
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

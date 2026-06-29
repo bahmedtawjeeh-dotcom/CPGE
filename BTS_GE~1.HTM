@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTS Massar — مولّد الروابط</title>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: linear-gradient(135deg, #1a4731 0%, #276749 100%);
+  min-height: 100vh;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 24px 16px;
+}
+.card {
+  background: white; border-radius: 20px;
+  width: 100%; max-width: 600px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25); overflow: hidden;
+}
+.header {
+  background: linear-gradient(135deg, #1a4731, #276749);
+  color: white; padding: 24px; text-align: center;
+}
+.header h1 { font-size: 21px; font-weight: 700; }
+.header p  { font-size: 13px; margin-top: 5px; opacity: 0.85; }
+/* Config bar */
+.config-bar {
+  background: #fffbeb; border-bottom: 2px solid #fbd38d;
+  padding: 12px 20px; display: flex; align-items: center; gap: 10px;
+}
+.config-bar label { font-size: 12px; color: #744210; font-weight: 700; flex-shrink: 0; }
+.config-bar input {
+  flex: 1; border: 2px solid #fbd38d; border-radius: 8px;
+  padding: 7px 10px; font-size: 12px; outline: none;
+  font-family: monospace; direction: ltr; text-align: left; transition: border-color .2s;
+}
+.config-bar input:focus { border-color: #d97706; }
+.config-bar input.saved { border-color: #38a169; background: #f0fff4; }
+/* Body */
+.body { padding: 20px; }
+.field { margin-bottom: 18px; }
+.field-label { display: block; margin-bottom: 7px; }
+.field-label .ar { font-size: 14px; font-weight: 700; color: #1a4731; }
+.field-label .fr { font-size: 12px; color: #888; font-weight: 400; margin-right: 6px; }
+input[type="text"], input[type="number"] {
+  width: 100%; border: 2px solid #e2e8f0; border-radius: 10px;
+  padding: 12px 14px; font-size: 15px; font-family: inherit;
+  outline: none; transition: border-color .2s, box-shadow .2s; direction: auto;
+}
+input[type="number"] { direction: ltr; text-align: center; max-width: 100px; }
+input[type="text"]:focus, input[type="number"]:focus {
+  border-color: #276749; box-shadow: 0 0 0 3px rgba(39,103,73,.15);
+}
+textarea {
+  width: 100%; border: 2px solid #e2e8f0; border-radius: 10px;
+  padding: 12px 14px; font-size: 13px; font-family: inherit; outline: none;
+  resize: vertical; min-height: 160px; line-height: 1.6;
+  transition: border-color .2s, box-shadow .2s; direction: rtl;
+}
+textarea:focus { border-color: #276749; box-shadow: 0 0 0 3px rgba(39,103,73,.15); }
+.hint { font-size: 12px; color: #999; margin-top: 5px; line-height: 1.5; }
+.max-row { display: flex; align-items: center; gap: 12px; }
+.max-label { font-size: 13px; color: #2d3748; }
+/* Buttons */
+.btn-analyse {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #2b6cb0, #3182ce);
+  color: white; border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(49,130,206,.35);
+  transition: opacity .2s, transform .1s; margin-top: 4px;
+}
+.btn-analyse:hover { opacity: .92; }
+.btn-analyse:active { transform: scale(.98); }
+/* Step 2 */
+#step2 { display: none; margin-top: 24px; }
+.step-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.step-title { font-size: 14px; font-weight: 700; color: #1a4731; }
+.count-badge {
+  font-size: 12px; background: #f0fff4; border: 1px solid #c6f6d5;
+  color: #276749; border-radius: 20px; padding: 3px 10px; font-weight: 700;
+}
+/* School cards checklist */
+.school-checklist { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+.school-card {
+  display: flex; align-items: center; gap: 10px;
+  border: 2px solid #e2e8f0; border-radius: 12px;
+  padding: 10px 12px; background: #f7fafc;
+  transition: all .2s;
+}
+.school-card.pre-sel {
+  background: #fffbeb; border-color: #f6ad55; opacity: 0.7;
+}
+.school-card-num {
+  min-width: 26px; height: 26px; border-radius: 50%;
+  background: #e2e8f0; color: #718096;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 12px; flex-shrink: 0;
+}
+.school-card.pre-sel .school-card-num { background: #f6ad55; color: white; }
+.school-card-info { flex: 1; min-width: 0; }
+.school-specialty {
+  font-size: 14px; font-weight: 700; color: #1a4731;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.school-card.pre-sel .school-specialty { text-decoration: line-through; color: #718096; }
+.school-institution {
+  font-size: 12px; color: #718096; margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.btn-toggle {
+  flex-shrink: 0; padding: 5px 10px;
+  border: 2px solid #e2e8f0; border-radius: 8px;
+  background: white; font-size: 11px; font-weight: 700;
+  cursor: pointer; color: #718096; transition: all .15s; white-space: nowrap;
+}
+.btn-toggle:hover { border-color: #f6ad55; color: #d69e2e; }
+.school-card.pre-sel .btn-toggle {
+  border-color: #f6ad55; background: #fefcbf; color: #b7791f;
+}
+.pre-legend {
+  display: flex; gap: 16px; font-size: 12px; margin-top: 10px; color: #718096; flex-wrap: wrap;
+}
+.leg { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+/* Generate button */
+.btn-generate {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #1a4731, #276749);
+  color: white; border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(39,103,73,.4);
+  transition: opacity .2s, transform .1s; margin-top: 16px;
+}
+.btn-generate:hover { opacity: .92; }
+.btn-generate:active { transform: scale(.98); }
+/* Result */
+.result-box {
+  display: none; margin-top: 18px;
+  background: #f0fff4; border: 2px solid #9ae6b4;
+  border-radius: 14px; padding: 16px;
+}
+.result-box h3 { color: #276749; font-size: 13px; margin-bottom: 10px; }
+.link-text {
+  background: white; border: 1.5px solid #9ae6b4; border-radius: 10px;
+  padding: 10px 12px; font-size: 11px; color: #276749;
+  word-break: break-all; direction: ltr; text-align: left;
+  margin-bottom: 10px; font-family: monospace; line-height: 1.6;
+}
+.btn-row { display: flex; gap: 10px; }
+.btn-copy {
+  flex: 1; padding: 11px; background: #276749; color: white;
+  border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: opacity .2s;
+}
+.btn-copy:hover { opacity: .88; }
+.btn-wa {
+  flex: 1; padding: 11px; background: #25d366; color: white;
+  border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: opacity .2s; text-decoration: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-wa:hover { opacity: .88; }
+.divider { border: none; border-top: 2px dashed #e2e8f0; margin: 20px 0; }
+.info-box {
+  background: #f0fff4; border-radius: 12px; padding: 13px;
+  font-size: 12px; color: #276749; line-height: 1.7; border: 1px solid #c6f6d5;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <h1>🎓 BTS Massar — مولّد الروابط</h1>
+    <p>تحليل ذكي للمراكز + استثناء المحددة مسبقاً &nbsp;|&nbsp; Analyse intelligente des centres</p>
+  </div>
+
+  <div class="config-bar">
+    <label>🌐 URL GitHub :</label>
+    <input type="text" id="baseUrl" placeholder="https://...github.io/.../bts_student.html" dir="ltr">
+  </div>
+
+  <div class="body">
+    <!-- Student name -->
+    <div class="field">
+      <label class="field-label">
+        <span class="ar">اسم الطالب / الطالبة</span>
+        <span class="fr">— Nom complet de l'élève</span>
+      </label>
+      <input type="text" id="studentName" placeholder="مثال: أحمد بنعلي   /   Exemple: Ahmed Benali">
+    </div>
+
+    <!-- Max choices -->
+    <div class="field">
+      <label class="field-label">
+        <span class="ar">عدد الأولويات المطلوبة</span>
+        <span class="fr">— Nombre de choix à classer</span>
+      </label>
+      <div class="max-row">
+        <input type="number" id="maxChoices" value="6" min="1" max="30">
+        <span class="max-label">اختيارات بالأولوية / choix à classer</span>
+      </div>
+    </div>
+
+    <!-- Paste area -->
+    <div class="field">
+      <label class="field-label">
+        <span class="ar">الصق المراكز من مسار</span>
+        <span class="fr">— Collez le texte copié depuis Massar</span>
+      </label>
+      <textarea id="rawPaste" placeholder="انسخ جميع المراكز من صفحة الطالب في مسار (المحددة وغير المحددة) ثم الصقها هنا...
+
+Sélectionnez tout le texte des centres sur la page Massar de l'élève et collez-le ici..."></textarea>
+      <p class="hint">📋 انسخ كل المراكز معاً — سواء المحددة مسبقاً أم لا — ثم انقر «تحليل»</p>
+    </div>
+
+    <button class="btn-analyse" onclick="analyseText()">
+      🔍 &nbsp; تحليل المراكز &nbsp;|&nbsp; Analyser les centres
+    </button>
+
+    <!-- Step 2: parsed list -->
+    <div id="step2">
+      <div class="step-header">
+        <span class="step-title">✏️ حدّد المراكز المحددة مسبقاً / Marquez les centres déjà cochés :</span>
+        <span class="count-badge" id="countBadge">0 للترتيب</span>
+      </div>
+
+      <div class="school-checklist" id="schoolChecklist"></div>
+
+      <div class="pre-legend">
+        <div class="leg"><div class="leg-dot" style="background:#c6f6d5"></div> للترتيب / À classer</div>
+        <div class="leg"><div class="leg-dot" style="background:#f6ad55"></div> محددة مسبقاً / Déjà cochée sur Massar</div>
+      </div>
+
+      <button class="btn-generate" onclick="generate()">
+        🔗 &nbsp; إنشاء الرابط &nbsp;|&nbsp; Générer le lien
+      </button>
+
+      <div class="result-box" id="resultBox">
+        <h3>✅ رابط الطالب / Lien de l'élève :</h3>
+        <div class="link-text" id="linkText"></div>
+        <div class="btn-row">
+          <button class="btn-copy" onclick="copyLink()">📋 نسخ الرابط</button>
+          <a class="btn-wa" id="waBtn" href="#" target="_blank">📲 واتساب / WhatsApp</a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="info-box">
+      <strong>📌 طريقة الاستخدام / Mode d'emploi :</strong><br>
+      1. انسخ <strong>كل</strong> المراكز من صفحة الطالب في مسار (المحددة وغير المحددة)<br>
+      2. الصقها في الحقل أعلاه ← انقر «تحليل» لاستخراج المراكز تلقائياً<br>
+      3. حدّد المراكز التي كانت <strong>مُعلَّمة تلقائياً</strong> على مسار (المحددة مسبقاً)<br>
+      4. انقر «إنشاء الرابط» — الطالب سيرتب فقط المراكز غير المحددة ✅<br>
+      <br>
+      <span style="color:#276749;font-size:11px">
+      1. Copiez <strong>tous</strong> les centres depuis la page Massar de l'élève<br>
+      2. Collez-les ici → cliquez «Analyser» pour extraction automatique<br>
+      3. Marquez les centres déjà cochés automatiquement sur Massar<br>
+      4. Cliquez «Générer» — l'élève ne classera que les centres non cochés ✅
+      </span>
+    </div>
+  </div>
+</div>
+
+<script>
+var STORAGE_KEY = 'bts_base_url';
+var DEFAULT_URL  = 'https://bahmedtawjeeh-dotcom.github.io/CPGE/bts_student.html';
+
+var saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_URL;
+document.getElementById('baseUrl').value = saved;
+document.getElementById('baseUrl').classList.add('saved');
+
+document.getElementById('baseUrl').addEventListener('input', function() {
+  var v = this.value.trim();
+  if (v) { localStorage.setItem(STORAGE_KEY, v); this.classList.add('saved'); }
+  else   { localStorage.removeItem(STORAGE_KEY); this.classList.remove('saved'); }
+});
+
+// ── Parser (Arabic + French auto-detect) ─────────────────────────────────────
+function parseMassarBTS(rawText) {
+  var text = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Flatten into one line, keeping tabs as §§ delimiter
+  var oneLine = text.split('\n')
+    .map(function(l) { return l.trim(); }).filter(Boolean).join(' ');
+  oneLine = oneLine.replace(/\t/g, '§§').replace(/\s+/g, ' ');
+
+  var results = [];
+
+  // ── Detect language ──────────────────────────────────────────────────────
+  var isFrench = /Fili[eè]re\s*:/i.test(oneLine);
+  var isArabic = /الشعبة\s*:/.test(oneLine); // الشعبة
+
+  // ── FRENCH parser ─────────────────────────────────────────────────────────
+  if (isFrench) {
+    var parts = oneLine.split(/(?=Fili[eè]re\s*:)/i);
+    parts.forEach(function(chunk) {
+      chunk = chunk.trim();
+      if (!chunk || !/Fili[eè]re/i.test(chunk)) return;
+
+      var specMatch = chunk.match(/Fili[eè]re\s*:\s*(.+?)(?=Etablissement|Province|Pr[eé]fecture|Acad[eé]mie|$)/i);
+      var specialty = specMatch ? specMatch[1].replace(/§/g, ' ').replace(/\s+/g, ' ').trim() : '';
+
+      var instMatch = chunk.match(/Etablissement\s*:\s*(.+?)(?=Province|Pr[eé]fecture|Acad[eé]mie|$)/i);
+      var institution = instMatch ? instMatch[1].replace(/§/g, ' ').replace(/\s+/g, ' ').trim() : '';
+
+      var provMatch = chunk.match(/(?:Province|Pr[eé]fecture(?:\s+d['u\s][^\s:]*)?)\s*:\s*(.+?)(?=Acad[eé]mie|$)/i);
+      var province = provMatch ? provMatch[1].replace(/§/g, ' ').replace(/\s+/g, ' ').trim() : '';
+
+      if (!specialty) return;
+      var label = specialty;
+      if (institution) label += ' — ' + institution;
+      results.push({ label: label, specialty: specialty, institution: institution, province: province, preSelected: false });
+    });
+  }
+
+  // ── ARABIC parser ─────────────────────────────────────────────────────────
+  if (isArabic) {
+    var parts = oneLine.split(/(?=الشعبة\s*:)/); // الشعبة
+    parts.forEach(function(chunk) {
+      chunk = chunk.trim();
+      if (!chunk || chunk.indexOf('الشعبة') < 0) return;
+
+      var specMatch = chunk.match(/الشعبة\s*:?\s*§*\s*(.+?)(?=§§|المؤسسة|عمالة|إقليم|الأكاديمية|$)/);
+      var specialty = specMatch ? specMatch[1].replace(/§/g, ' ').replace(/\s+/g, ' ').trim() : '';
+
+      var instMatch = chunk.match(/المؤسسة\s*:?\s*§*\s*(.+?)(?=§§|عمالة|إقليم|الأكاديمية|$)/);
+      var institution = instMatch ? instMatch[1].replace(/§/g, ' ').replace(/\s+/g, ' ').trim() : '';
+
+      var provMatch = chunk.match(/(?:عمالة|إقليم)\s*:?\s*§*\s*(.+?)(?=§§|الأكاديمية|$)/);
+      var province = provMatch ? provMatch[1].replace(/§/g, ' ').replace(/\s+/g, ' ').trim() : '';
+
+      if (!specialty) return;
+      var label = specialty;
+      if (institution) label += ' — ' + institution;
+      results.push({ label: label, specialty: specialty, institution: institution, province: province, preSelected: false });
+    });
+  }
+
+  return results;
+}
+
+// Fallback: line-by-line if parser returns nothing
+function fallbackParse(rawText) {
+  return rawText.split('\n')
+    .map(function(l) { return l.replace(/\t/g, ' ').replace(/\s+/g, ' ').trim(); })
+    .filter(function(l) { return l.length > 2; })
+    .map(function(l) { return { label: l, specialty: l, institution: '', province: '', preSelected: false }; });
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+var parsedSchools = [];
+
+function analyseText() {
+  var raw = document.getElementById('rawPaste').value.trim();
+  if (!raw) {
+    alert('الرجاء لصق نص المراكز أولاً\nVeuillez d\'abord coller le texte des centres.');
+    return;
+  }
+
+  parsedSchools = parseMassarBTS(raw);
+
+  // If parser couldn't detect structured data, fall back to line-by-line
+  if (parsedSchools.length === 0) {
+    parsedSchools = fallbackParse(raw);
+  }
+
+  if (parsedSchools.length === 0) {
+    alert('لم يتم العثور على مراكز. تأكد من نسخ النص بشكل صحيح.\nAucun centre détecté. Vérifiez le texte copié.');
+    return;
+  }
+
+  renderChecklist();
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('resultBox').style.display = 'none';
+  document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderChecklist() {
+  var container = document.getElementById('schoolChecklist');
+  container.innerHTML = '';
+
+  parsedSchools.forEach(function(school, idx) {
+    var card = document.createElement('div');
+    card.className = 'school-card' + (school.preSelected ? ' pre-sel' : '');
+
+    var numEl = document.createElement('div');
+    numEl.className = 'school-card-num';
+    numEl.textContent = idx + 1;
+
+    var infoEl = document.createElement('div');
+    infoEl.className = 'school-card-info';
+    infoEl.innerHTML =
+      '<div class="school-specialty">' + escHtml(school.specialty) + '</div>' +
+      (school.institution ? '<div class="school-institution">🏫 ' + escHtml(school.institution) + '</div>' : '') +
+      (school.province    ? '<div class="school-institution">📍 ' + escHtml(school.province)    + '</div>' : '');
+
+    var toggleBtn = document.createElement('button');
+    toggleBtn.className = 'btn-toggle';
+    toggleBtn.textContent = school.preSelected ? '✅ مُحددة مسبقاً' : '☐ محددة مسبقاً؟';
+    toggleBtn.title = school.preSelected
+      ? 'انقر لإلغاء التحديد / Cliquer pour désélectionner'
+      : 'انقر إذا كانت مُعلَّمة تلقائياً على مسار / Cliquer si déjà cochée sur Massar';
+
+    (function(i) {
+      toggleBtn.addEventListener('click', function() {
+        parsedSchools[i].preSelected = !parsedSchools[i].preSelected;
+        renderChecklist();
+      });
+    })(idx);
+
+    card.appendChild(numEl);
+    card.appendChild(infoEl);
+    card.appendChild(toggleBtn);
+    container.appendChild(card);
+  });
+
+  updateCount();
+}
+
+function updateCount() {
+  var toRank   = parsedSchools.filter(function(s) { return !s.preSelected; }).length;
+  var preSel   = parsedSchools.filter(function(s) { return  s.preSelected; }).length;
+  var badge    = document.getElementById('countBadge');
+  badge.textContent = toRank + ' للترتيب' + (preSel > 0 ? ' | ' + preSel + ' مُحددة مسبقاً' : '');
+}
+
+// ── Generate ─────────────────────────────────────────────────────────────────
+function generate() {
+  var baseUrl = document.getElementById('baseUrl').value.trim().replace(/\/$/, '');
+  var name    = document.getElementById('studentName').value.trim();
+  var max     = parseInt(document.getElementById('maxChoices').value, 10);
+
+  if (!baseUrl) {
+    alert('الرجاء إدخال رابط GitHub\nVeuillez saisir l\'URL GitHub.');
+    document.getElementById('baseUrl').focus(); return;
+  }
+  if (!name) {
+    alert('الرجاء إدخال اسم الطالب\nVeuillez saisir le nom de l\'élève.'); return;
+  }
+  if (!max || max < 1) {
+    alert('الرجاء إدخال عدد الأولويات\nVeuillez saisir le nombre de choix.'); return;
+  }
+  if (parsedSchools.length === 0) {
+    alert('الرجاء تحليل المراكز أولاً\nVeuillez d\'abord analyser les centres.'); return;
+  }
+
+  var toRank  = parsedSchools.filter(function(s) { return !s.preSelected; });
+  var preSel  = parsedSchools.filter(function(s) { return  s.preSelected; });
+
+  if (toRank.length < 2) {
+    alert('يجب أن يكون هناك مركزان للترتيب على الأقل\nIl faut au moins 2 centres à classer.'); return;
+  }
+  if (toRank.length < max) {
+    if (!confirm(
+      'عدد المراكز للترتيب (' + toRank.length + ') أقل من الأولويات المطلوبة (' + max + ').\n' +
+      'هل تريد تعديل العدد إلى ' + toRank.length + ' ؟\n\n' +
+      'Nombre de centres (' + toRank.length + ') < choix requis (' + max + ').\n' +
+      'Ajuster à ' + toRank.length + ' ?'
+    )) return;
+    max = toRank.length;
+    document.getElementById('maxChoices').value = max;
+  }
+
+  var sParam   = LZString.compressToEncodedURIComponent(toRank.map(function(s) { return s.label; }).join('|'));
+  var preParam = preSel.length > 0
+    ? '&pre=' + LZString.compressToEncodedURIComponent(preSel.map(function(s) { return s.label; }).join('|'))
+    : '';
+  var longUrl = baseUrl + '?n=' + encodeURIComponent(name) + '&s=' + sParam + '&max=' + max + preParam;
+  var nbPre   = preSel.length;
+
+  // Show loading state
+  document.getElementById('linkText').textContent = '⏳ جاري تقصير الرابط... / Raccourcissement en cours...';
+  document.getElementById('resultBox').style.display = 'block';
+  document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('waBtn').removeAttribute('href');
+
+  // Try to shorten via is.gd API
+  fetch('https://is.gd/create.php?format=json&url=' + encodeURIComponent(longUrl))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var finalUrl = (data && data.shorturl) ? data.shorturl : longUrl;
+      showResult(finalUrl, name, max, toRank.length, nbPre);
+    })
+    .catch(function() {
+      // Fallback: use long URL if shortener unavailable
+      showResult(longUrl, name, max, toRank.length, nbPre);
+    });
+}
+
+function showResult(url, name, max, total, nbPre) {
+  document.getElementById('linkText').textContent = url;
+  var waMsg =
+    'مرحباً ' + name + ' 👋\n\n' +
+    'هذا رابطك لاختيار مراكز BTS :\n' + url + '\n\n' +
+    '• اختر ' + max + ' مراكز من أصل ' + total +
+    (nbPre > 0 ? '\n• ' + nbPre + ' مركز مُحدد مسبقاً من طرف BTS (يظهر لك في الرابط)' : '') +
+    '\n\nأرسل لنا النتيجة بعد التأكيد 🎓';
+  document.getElementById('waBtn').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+function copyLink() {
+  var text = document.getElementById('linkText').textContent;
+  var btn  = document.querySelector('.btn-copy');
+  function flash() {
+    btn.textContent = '✅ تم النسخ!';
+    setTimeout(function(){ btn.textContent = '📋 نسخ الرابط'; }, 2000);
+  }
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).then(flash).catch(function(){ fb(text, flash); }); }
+  else fb(text, flash);
+}
+function fb(t, cb) {
+  var ta = document.createElement('textarea');
+  ta.value = t; ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  document.execCommand('copy'); document.body.removeChild(ta); cb();
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
